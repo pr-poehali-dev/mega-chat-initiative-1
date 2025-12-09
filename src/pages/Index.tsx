@@ -85,24 +85,6 @@ const Index = () => {
     scrollToBottom();
   }, [messages]);
 
-  const simulateAIResponse = (userMessage: string): string => {
-    const responses = language === 'ru' ? [
-      'Отличный вопрос! Позвольте мне помочь вам с этим.',
-      'Я понимаю ваш запрос. Вот что я могу предложить...',
-      'Спасибо за обращение! Давайте разберемся вместе.',
-      'Интересная тема! Вот мой ответ на ваш вопрос.',
-      'Я готов помочь! Вот детальный ответ для вас.'
-    ] : [
-      'Great question! Let me help you with that.',
-      'I understand your request. Here\'s what I can suggest...',
-      'Thanks for reaching out! Let\'s figure this out together.',
-      'Interesting topic! Here\'s my response to your question.',
-      'I\'m here to help! Here\'s a detailed answer for you.'
-    ];
-    
-    return responses[Math.floor(Math.random() * responses.length)];
-  };
-
   const handleSend = async () => {
     if (!inputValue.trim()) return;
 
@@ -114,19 +96,46 @@ const Index = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const messageText = inputValue;
     setInputValue('');
     setIsTyping(true);
 
-    setTimeout(() => {
+    try {
+      const response = await fetch('https://functions.poehali.dev/da5a9482-af32-4f73-8ef3-6923bcc3f9fe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: messageText,
+          language: language
+        })
+      });
+
+      const data = await response.json();
+      
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: simulateAIResponse(inputValue),
+        content: data.response || (language === 'ru' ? 'Извините, произошла ошибка.' : 'Sorry, an error occurred.'),
         timestamp: new Date()
       };
+      
       setMessages(prev => [...prev, aiResponse]);
+    } catch (error) {
+      console.error('Error calling AI:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: language === 'ru' 
+          ? 'Извините, не удалось получить ответ. Проверьте подключение к интернету.' 
+          : 'Sorry, failed to get a response. Please check your internet connection.',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

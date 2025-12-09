@@ -1,0 +1,47 @@
+{
+  "tests": [
+    {
+      "name": "Test AI chat response",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "message": "Hello, how are you?",
+        "language": "en"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "response": "string",
+        "request_id": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test Russian language",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "message": "Привет, как дела?",
+        "language": "ru"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "response": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test empty message error",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "message": "",
+        "language": "en"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
